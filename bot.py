@@ -295,17 +295,10 @@ async def main():
 # if __name__ == "__main__":
 #     asyncio.run(main())
 
-# bot = Bot(token=BOT_TOKEN)
-# dp = Dispatcher(bot)
-
-# @dp.message_handler(commands=["start"])
-# async def start(message: types.Message):
-#     await message.reply("Hello from Render! 🚀")
-
 async def handle(request):
     data = await request.json()
     update = types.Update(**data)
-    await dp.process_update(update)
+    await dp.feed_update(update)   # <-- CORRECT METHOD
     return web.Response(text="OK")
 
 app = web.Application()

@@ -50,8 +50,6 @@ try:
                 QUESTIONS.append((text, options, correct))
         except:
             continue
-    from pprint import pprint
-    pprint(QUESTIONS)
     print(f"To‘g‘ri savollar yuklandi: {len(QUESTIONS)}")
 except Exception as e:
     print("XATO:", e)

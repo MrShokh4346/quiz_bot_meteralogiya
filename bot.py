@@ -298,7 +298,7 @@ async def main():
 async def handle(request):
     data = await request.json()
     update = types.Update(**data)
-    await dp.feed_update(update)   # <-- CORRECT METHOD
+    await dp.feed_update(bot, update)  # <-- correct for Aiogram 3.3+
     return web.Response(text="OK")
 
 app = web.Application()

@@ -304,7 +304,7 @@ async def main():
 
 async def handle(request):
     data = await request.json()
-    update = types.Update.to_object(data)
+    update = types.Update(**data)
     await dp.process_update(update)
     return web.Response(text="OK")
 

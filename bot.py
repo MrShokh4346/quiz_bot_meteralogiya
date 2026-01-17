@@ -15,14 +15,15 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 import os
-from flask import Flask, request, abort
+# from flask import Flask, request, abort
 from aiogram import types
 from dotenv import load_dotenv
-
+from aiohttp import web
 load_dotenv()
 
 # ===================== CONFIG =====================
 BOT_TOKEN=os.getenv("BOT_TOKEN")
+WEBHOOK_URL=os.getenv("WEBHOOK_URL")
 QUESTIONS_FILE = "telegram_quiz.json"
 # =================================================
 
@@ -200,27 +201,6 @@ async def send_question(user_id: int):
         reply_markup=get_quiz_keyboard(data["range"])
     )
 
-# async def send_question(user_id: int):
-#     data = user_data[user_id]
-#     if data["current"] >= data["total"]:
-#         await show_results(user_id)
-#         return
-
-#     q_text, options, correct = data["questions"][data["current"]]
-#     data["answered"] = False
-#     data["timer_task"] = asyncio.create_task(timer_expired(user_id))
-
-#     await bot.send_poll(
-#         chat_id=user_id,
-#         question=f"{data['range']} • {data['current']+1}/{data['total']}\n\n{q_text}",
-#         options=options,
-#         type="quiz",
-#         correct_option_id=correct, # + 1,
-#         is_anonymous=False,
-#         open_period=30,
-#         explanation="Vaqt tugadi!",
-#         reply_markup=get_quiz_keyboard(data["range"])  # YANGI TUGMALAR
-#     )
 
 async def timer_expired(user_id: int):
     await asyncio.sleep(30)
@@ -312,5 +292,33 @@ async def main():
     print(f"Bot ishga tushdi! Mavjud savollar: {len(QUESTIONS)}")
     await dp.start_polling(bot)
 
+# if __name__ == "__main__":
+#     asyncio.run(main())
+
+# bot = Bot(token=BOT_TOKEN)
+# dp = Dispatcher(bot)
+
+# @dp.message_handler(commands=["start"])
+# async def start(message: types.Message):
+#     await message.reply("Hello from Render! 🚀")
+
+async def handle(request):
+    data = await request.json()
+    update = types.Update.to_object(data)
+    await dp.process_update(update)
+    return web.Response(text="OK")
+
+app = web.Application()
+app.router.add_post(f"/{BOT_TOKEN}", handle)
+
+async def on_startup(app):
+    await bot.set_webhook(WEBHOOK_URL + "/" + BOT_TOKEN)
+
+app.on_startup.append(on_startup)
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    if WEBHOOK_URL:
+        web.run_app(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+    else:
+        import asyncio
+        asyncio.run(main())
